@@ -76,11 +76,11 @@ impl Ean13 {
     ///
     /// # Returns
     ///
-    /// * A valid `Ean13` if successful. Otherwise, return an `ean13::Error`
+    /// * A valid [`Ean13`] if successful. Otherwise, return an [`Error`]
     ///
     /// # Errors
     ///
-    /// Returns a member of `ean13::Error` if the supplied code is not 12 or 13 digits long, if
+    /// Returns a member of [`Error`] if the supplied code is not 12 or 13 digits long, if
     /// there are any characters other than 0-9 in the code, or if the supplied check digit is
     /// incorrect
     ///
