@@ -200,4 +200,12 @@ mod tests {
         );
         assert_eq!(Ean13::from_str("00413b3015071"), Err(Error::InvalidDigit));
     }
+
+    #[test]
+    fn test_as_arr() {
+        assert_eq!(
+            Ean13::from_str("706285102001").unwrap().as_arr(),
+            [0, 7, 0, 6, 2, 8, 5, 1, 0, 2, 0, 0, 1]
+        );
+    }
 }
