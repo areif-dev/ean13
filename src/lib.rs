@@ -19,6 +19,8 @@
 
 use std::{fmt, str::FromStr};
 
+use serde::{Deserialize, Serialize};
+
 /// Calculates the check digit for an EAN13 based on the first 12 digits of the code. Useful for
 /// validating codes
 ///
@@ -38,12 +40,6 @@ pub fn check_digit(first_12: [u8; 12]) -> u8 {
         check = 10 - check;
     }
     check as u8
-}
-
-/// Represents a validated EAN-13 barcode
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Ean13 {
-    digits: [u8; 13],
 }
 
 /// Errors that occur when validating a code
@@ -66,6 +62,12 @@ impl fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
+
+/// Represents a validated EAN-13 barcode
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Ean13 {
+    digits: [u8; 13],
+}
 
 impl Ean13 {
     /// Attempts to parse &str into an EAN-13
@@ -144,9 +146,41 @@ impl FromStr for Ean13 {
     }
 }
 
+impl Serialize for Ean13 {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for Ean13 {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ean13::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{Ean13, Error};
+
+    #[test]
+    fn test_serialize() {
+        let upc = Ean13::from_str("041303015070").unwrap();
+        let json = serde_json::json!({"upc": upc});
+        assert_eq!(json.to_string(), r#"{"upc":"0041303015070"}"#);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let deserialized: Ean13 = serde_json::from_str("\"041303015070\"").unwrap();
+        assert_eq!(deserialized, Ean13::from_str("041303015070").unwrap());
+    }
 
     #[test]
     fn test_display() {
