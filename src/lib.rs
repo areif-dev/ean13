@@ -31,7 +31,7 @@ use serde::{Deserialize, Serialize};
 /// # Returns
 ///
 /// The appropriate check digit for the supplied code
-pub fn check_digit(first_12: [u8; 12]) -> u8 {
+pub fn calculate_check_digit(first_12: [u8; 12]) -> u8 {
     let sum_odd: u32 = first_12.iter().step_by(2).map(|&d| d as u32).sum();
     let sum_even: u32 = first_12.iter().skip(1).step_by(2).map(|&d| d as u32).sum();
     let total = sum_even * 3 + sum_odd;
@@ -113,7 +113,7 @@ impl Ean13 {
 
         // Validate check digit
         let first_12: [u8; 12] = digits[0..12].try_into().or(Err(Error::InvalidLength))?;
-        let expected = check_digit(first_12);
+        let expected = calculate_check_digit(first_12);
         let actual = digits[12];
         if expected != actual {
             return Err(Error::InvalidCheckDigit);
@@ -217,7 +217,7 @@ mod tests {
                 .collect::<Vec<u8>>()
                 .try_into()
                 .unwrap();
-            assert_eq!(crate::check_digit(first_12), check);
+            assert_eq!(crate::calculate_check_digit(first_12), check);
         }
     }
 
