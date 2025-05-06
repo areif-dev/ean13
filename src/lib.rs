@@ -122,6 +122,92 @@ impl Ean13 {
         Ok(Self { digits })
     }
 
+    /// WARNING: If used incorrectly, it is very likely this function will create valid looking [`Ean13`]s
+    /// that are actually completely divorced from the correct code. Whenever possible, prefer to use
+    /// [`Ean13::from_str`].
+    ///
+    /// Attempt to create [`Ean13`] from a string that may be malformed. This includes removing all
+    /// non-numeric characters, '0' padding the start of the string to match exactly 13 characters
+    /// in length, and correcting the check digit, if it is incorrect.
+    ///
+    /// If the string still cannot be converted into an [`Ean13`], return the corresponding [`Error`]
+    ///
+    /// # Arguments
+    ///
+    /// * `broken_str` - The string to attempt to convert into an [`Ean13`]. May contain
+    /// non-numeric characters, be of a bad length, or have an incorrect check digit.
+    ///
+    /// # Returns
+    ///
+    /// If any existing malformations of the string can be fixed (too short, bad check digit, or
+    /// containing non-numeric characters), then return the corresponding [`Ean13`]. Otherwise,
+    /// return the appropriate [`Error`]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use ean13::Ean13;
+    ///
+    /// // All non-numeric characters are ignored
+    /// assert_eq!(
+    ///     Ean13::from_str_nonstrict("a761458256240").unwrap(),
+    ///     Ean13::from_str("0761458256240").unwrap()
+    /// );
+    ///
+    /// // Codes shorter than 13 digits will be forward padded with zeros until their length is 13
+    /// assert_eq!(
+    ///     Ean13::from_str_nonstrict("1234565").unwrap(),
+    ///     Ean13::from_str("0000001234565").unwrap()
+    /// );
+    ///
+    /// // Codes longer than 13 characters without any preceeding zeros will still fail to generate
+    /// assert_eq!(
+    ///     Ean13::from_str_nonstrict("12345678901234"),
+    ///     Err(ean13::Error::InvalidLength)
+    /// );
+    ///
+    /// // Codes longer than 13 digits with preceeding zeros will have preceeding zeros truncated
+    /// assert_eq!(
+    ///     Ean13::from_str_nonstrict("00000000001234565").unwrap(),
+    ///     Ean13::from_str("0000001234565").unwrap()
+    /// );
+    ///
+    /// // Codes with an incorrect check digit will have their check digit fixed
+    /// assert_eq!(
+    ///     Ean13::from_str_nonstrict("0000001234566").unwrap(),
+    ///     Ean13::from_str("0000001234565").unwrap()
+    /// );
+    ///
+    /// // Be very careful! Strings that are not close to barcodes at all may still result in valid
+    /// // looking [`Ean13`]s
+    /// assert_eq!(
+    ///     Ean13::from_str_nonstrict("absolute nonsense").unwrap(),
+    ///     Ean13::from_str("0000000000000").unwrap()
+    /// );
+    /// ```
+    pub fn from_str_nonstrict(broken_str: &str) -> Result<Ean13, Error> {
+        let only_digits: String = broken_str.chars().filter(|c| c.is_digit(10)).collect();
+        let normalized = format!("{:0>13}", only_digits.trim_start_matches("0"));
+        let mut digit_vec: Vec<u8> = normalized
+            .chars()
+            .filter_map(|c| c.to_digit(10))
+            .map(|d| d as u8)
+            .collect();
+        if digit_vec.len() != 13 {
+            return Err(Error::InvalidLength);
+        }
+        if let None = digit_vec.pop() {
+            return Err(Error::InvalidLength);
+        }
+        let first_12: [u8; 12] = digit_vec.try_into().or(Err(Error::InvalidLength))?;
+        let check_digit = calculate_check_digit(first_12);
+        let mut digit_vec: Vec<u8> = first_12.into();
+        digit_vec.push(check_digit);
+        Ok(Ean13::from_str(
+            &digit_vec.iter().map(|d| d.to_string()).collect::<String>(),
+        )?)
+    }
+
     pub fn to_string(&self) -> String {
         self.digits.iter().map(|d| d.to_string()).collect()
     }
@@ -233,6 +319,46 @@ mod tests {
             Err(Error::InvalidCheckDigit)
         );
         assert_eq!(Ean13::from_str("00413b3015071"), Err(Error::InvalidDigit));
+    }
+
+    #[test]
+    fn test_from_str_nonstrict() {
+        // All non-numeric characters are ignored
+        assert_eq!(
+            Ean13::from_str_nonstrict("a761458256240").unwrap(),
+            Ean13::from_str("0761458256240").unwrap()
+        );
+
+        // Codes shorter than 13 digits will be forward padded with zeros until their length is 13
+        assert_eq!(
+            Ean13::from_str_nonstrict("1234565").unwrap(),
+            Ean13::from_str("0000001234565").unwrap()
+        );
+
+        // Codes longer than 13 characters without any preceeding zeros will still fail to generate
+        assert_eq!(
+            Ean13::from_str_nonstrict("12345678901234"),
+            Err(Error::InvalidLength)
+        );
+
+        // Codes longer than 13 digits with preceeding zeros will have preceeding zeros truncated
+        assert_eq!(
+            Ean13::from_str_nonstrict("00000000001234565").unwrap(),
+            Ean13::from_str("0000001234565").unwrap()
+        );
+
+        // Codes with an incorrect check digit will have their check digit fixed
+        assert_eq!(
+            Ean13::from_str_nonstrict("0000001234566").unwrap(),
+            Ean13::from_str("0000001234565").unwrap()
+        );
+
+        // Be very careful! Strings that are not close to barcodes at all may still result in valid
+        // looking [`Ean13`]s
+        assert_eq!(
+            Ean13::from_str_nonstrict("absolute nonsense").unwrap(),
+            Ean13::from_str("0000000000000").unwrap()
+        );
     }
 
     #[test]
