@@ -64,7 +64,7 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 /// Represents a validated EAN-13 barcode
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Ean13 {
     digits: [u8; 13],
 }
