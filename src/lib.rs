@@ -17,7 +17,10 @@
 //! }
 //! ```
 
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{self, Debug},
+    str::FromStr,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -64,9 +67,15 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 /// Represents a validated EAN-13 barcode
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Ean13 {
     digits: [u8; 13],
+}
+
+impl Debug for Ean13 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Ean13({})", self.to_string())
+    }
 }
 
 impl Ean13 {
