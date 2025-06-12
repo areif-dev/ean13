@@ -1,5 +1,5 @@
 [package]
-name = "ean13"
+name = "inventory-utils"
 version = "0.2.2"
 edition = "2024"
 
