@@ -327,6 +327,7 @@ mod tests {
             Ean13::from_str("0041303015071"),
             Err(Error::InvalidCheckDigit)
         );
+        assert!(Ean13::from_str("0703948501157").is_ok());
         assert_eq!(Ean13::from_str("00413b3015071"), Err(Error::InvalidDigit));
     }
 
