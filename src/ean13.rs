@@ -227,6 +227,11 @@ impl Ean13 {
     pub fn as_arr(&self) -> [u8; 13] {
         self.digits.clone()
     }
+
+    /// Determine if the code is a valid American UPC-A by checking if the first digit is 0
+    pub fn is_upca(&self) -> bool {
+        self.digits[0] == 0
+    }
 }
 
 impl fmt::Display for Ean13 {
