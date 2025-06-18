@@ -232,6 +232,16 @@ impl Ean13 {
     pub fn is_upca(&self) -> bool {
         self.digits[0] == 0
     }
+
+    /// If this code represents a UPC-A code (ie it's country code is 0), then the resulting string
+    /// will omit the first 0 and return the 12 digit UPC-A code. Otherwise just return the full 13
+    /// digit EAN-13 code as a string
+    pub fn to_upca_string(&self) -> String {
+        if self.is_upca() {
+            return self.to_string()[1..].to_string();
+        }
+        self.to_string()
+    }
 }
 
 impl fmt::Display for Ean13 {
