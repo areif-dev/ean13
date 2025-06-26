@@ -3,7 +3,7 @@
 //! # Examples
 //!
 //! ```rust
-//! use inventory_utils::{Ean13, Ean13Error};
+//! use ean13::{Ean13, Ean13Error};
 //!
 //! fn main() {
 //!     let sample = Ean13::from_str("0010576000465").unwrap();
@@ -98,7 +98,7 @@ impl Ean13 {
     /// # Examples
     ///
     /// ```rust
-    /// use inventory_utils::Ean13;
+    /// use ean13::Ean13;
     ///
     /// let valid = Ean13::from_str("706285102001").unwrap();
     /// assert_eq!(valid.to_string(), "0706285102001".to_string());
@@ -157,7 +157,7 @@ impl Ean13 {
     /// # Examples
     ///
     /// ```rust
-    /// use inventory_utils::{Ean13, Ean13Error};
+    /// use ean13::{Ean13, Ean13Error};
     ///
     /// // All non-numeric characters are ignored
     /// assert_eq!(
