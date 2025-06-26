@@ -398,4 +398,22 @@ mod tests {
             [0, 7, 0, 6, 2, 8, 5, 1, 0, 2, 0, 0, 1]
         );
     }
+
+    #[test]
+    fn test_is_upca() {
+        assert!(Ean13::from_str("0041303015070").unwrap().is_upca());
+        assert!(!Ean13::from_str("6936685222021").unwrap().is_upca());
+    }
+
+    #[test]
+    fn test_to_upca_string() {
+        assert_eq!(
+            Ean13::from_str("0041303015070").unwrap().to_upca_string(),
+            "041303015070".to_string()
+        );
+        assert_eq!(
+            Ean13::from_str("6936685222021").unwrap().to_upca_string(),
+            "6936685222021".to_string()
+        );
+    }
 }
