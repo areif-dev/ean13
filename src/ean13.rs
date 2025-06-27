@@ -1,4 +1,4 @@
-//! Parses and validates EAN-13 barcodes and their subset UPC-A
+//! Parses and validates EAN-13 barcodes and the UPC-A subset
 //!
 //! # Examples
 //!
